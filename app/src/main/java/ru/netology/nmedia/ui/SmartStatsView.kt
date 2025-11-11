@@ -12,8 +12,8 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.util.AndroidUtils
 import kotlin.math.min
 import kotlin.random.Random
-//
-class StatsView @JvmOverloads constructor(
+
+class SmartStatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
@@ -48,10 +48,23 @@ class StatsView @JvmOverloads constructor(
         textSize = fontSize
     }
 
+    // Принимаем абсолютные значения вместо долей
     var data: List<Float> = emptyList()
         set(value) {
             field = value
             invalidate()
+        }
+
+    //Вычисляем доли автоматически на основе абсолютных значений
+    private val proportions: List<Float>
+        get() {
+            if (data.isEmpty()) return emptyList()
+
+            val sum = data.sum()
+            //  Если сумма равна 0, возвращаем равные доли
+            if (sum == 0F) return List(data.size) { 1F / data.size }
+
+            return data.map { it / sum }
         }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -68,14 +81,18 @@ class StatsView @JvmOverloads constructor(
             return
         }
 
+        // Используем вычисленные пропорции вместо исходных данных
+        val proportions = this.proportions
+
         var startFrom = -90F
-        for ((index, datum) in data.withIndex()) {
-            val angle = 360F * datum
+        for ((index, proportion) in proportions.withIndex()) {
+            val angle = 360F * proportion
             paint.color = colors.getOrNull(index) ?: randomColor()
             canvas.drawArc(oval, startFrom, angle, false, paint)
             startFrom += angle
         }
 
+        //  Показываем
         canvas.drawText(
             "%.2f%%".format(data.sum() * 100),
             center.x,
@@ -86,4 +103,3 @@ class StatsView @JvmOverloads constructor(
 
     private fun randomColor() = Random.nextInt(0xFF000000.toInt(), 0xFFFFFFFF.toInt())
 }
-//
