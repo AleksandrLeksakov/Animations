@@ -27,6 +27,9 @@ class SmartStatsView @JvmOverloads constructor(
     private var fontSize = AndroidUtils.dp(context, 40F).toFloat()
     private var colors = emptyList<Int>()
 
+    //Уменьшил перекрытие для естественного вида
+    private var overlapAngle = 4F
+
     init {
         context.withStyledAttributes(attrs, R.styleable.StatsView) {
             lineWidth = getDimension(R.styleable.StatsView_lineWidth, lineWidth)
@@ -48,20 +51,24 @@ class SmartStatsView @JvmOverloads constructor(
         textSize = fontSize
     }
 
-    // Принимаем абсолютные значения вместо долей
     var data: List<Float> = emptyList()
         set(value) {
             field = value
             invalidate()
         }
 
-    //Вычисляем доли автоматически на основе абсолютных значений
+    var overlap: Float
+        get() = overlapAngle
+        set(value) {
+            overlapAngle = value
+            invalidate()
+        }
+
     private val proportions: List<Float>
         get() {
             if (data.isEmpty()) return emptyList()
 
             val sum = data.sum()
-            //  Если сумма равна 0, возвращаем равные доли
             if (sum == 0F) return List(data.size) { 1F / data.size }
 
             return data.map { it / sum }
@@ -81,24 +88,25 @@ class SmartStatsView @JvmOverloads constructor(
             return
         }
 
-        // Используем вычисленные пропорции вместо исходных данных
         val proportions = this.proportions
-
         var startFrom = -90F
-        for ((index, proportion) in proportions.withIndex()) {
-            val angle = 360F * proportion
-            paint.color = colors.getOrNull(index) ?: randomColor()
+
+        // 1. Рисуем все сегменты
+        for (i in proportions.indices) {
+            val angle = 360F * proportions[i]
+            paint.color = colors.getOrNull(i) ?: randomColor()
             canvas.drawArc(oval, startFrom, angle, false, paint)
             startFrom += angle
         }
 
-        //  Показываем
-        canvas.drawText(
-            "%.2f%%".format(data.sum() * 100),
-            center.x,
-            center.y + textPaint.textSize / 4,
-            textPaint,
-        )
+        // 2. Перекрытие: первый цвет заходит на последний
+        if (proportions.size > 1) {
+            val firstColor = colors.getOrNull(0) ?: randomColor()
+            paint.color = firstColor
+            canvas.drawArc(oval, -90F - overlapAngle, overlapAngle, false, paint)
+        }
+
+        canvas.drawText("100.00%", center.x, center.y + textPaint.textSize / 4, textPaint)
     }
 
     private fun randomColor() = Random.nextInt(0xFF000000.toInt(), 0xFFFFFFFF.toInt())

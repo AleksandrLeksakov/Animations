@@ -21,12 +21,13 @@ class AppActivity : AppCompatActivity() {
             insets
         }
 
-
         binding.stats.data = listOf(
-            0.25F,
-            0.25F,
-            0.25F,
-            0.25F,
+            500F,  // Фиолетовый - 25% (первый - перекрывает)
+            500F,  // Бирюзовый - 25%
+            500F,  // Желтый - 25%
+            500F,  // Розово-красный - 25% (последний)
         )
+
+             // binding.stats.overlap = 4F // Оптимальное перекрытие
     }
 }
