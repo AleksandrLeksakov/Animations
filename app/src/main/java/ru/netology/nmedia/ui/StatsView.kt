@@ -13,7 +13,7 @@ import ru.netology.nmedia.util.AndroidUtils
 import kotlin.math.min
 import kotlin.random.Random
 
-class SmartStatsView @JvmOverloads constructor(
+class StatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
