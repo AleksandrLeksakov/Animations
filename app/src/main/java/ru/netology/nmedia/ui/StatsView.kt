@@ -27,7 +27,10 @@ class StatsView @JvmOverloads constructor(
     private var fontSize = AndroidUtils.dp(context, 40F).toFloat()
     private var colors = emptyList<Int>()
 
-    //Уменьшил перекрытие для естественного вида
+    // Прогресс анимации (от 0 до 1)
+    private var animationProgress = 1F // 1 = полная отрисовка
+
+    // перекрытие для естественного вида
     private var overlapAngle = 4F
 
     init {
@@ -64,6 +67,14 @@ class StatsView @JvmOverloads constructor(
             invalidate()
         }
 
+    //  для прогресса анимации
+    var progress: Float
+        get() = animationProgress
+        set(value) {
+            animationProgress = value
+            invalidate()
+        }
+
     private val proportions: List<Float>
         get() {
             if (data.isEmpty()) return emptyList()
@@ -89,23 +100,40 @@ class StatsView @JvmOverloads constructor(
         }
 
         val proportions = this.proportions
+
+        // Сохраняем состояние канваса
+        canvas.save()
+
+        // Поворачиваем канвас на основе прогресса
+        // progress от 0 до 1, умножаем на 360 для полного оборота
+        val rotationAngle = 360F * animationProgress
+        canvas.rotate(rotationAngle, center.x, center.y)
+
         var startFrom = -90F
 
-        // 1. Рисуем все сегменты
+        //  Рисуем все сегменты с учетом прогресса
         for (i in proportions.indices) {
-            val angle = 360F * proportions[i]
+            val fullAngle = 360F * proportions[i]
+            // Умножаем угол на прогресс - сегменты "вырастают"
+            val animatedAngle = fullAngle * animationProgress
+
             paint.color = colors.getOrNull(i) ?: randomColor()
-            canvas.drawArc(oval, startFrom, angle, false, paint)
-            startFrom += angle
+            canvas.drawArc(oval, startFrom, animatedAngle, false, paint)
+            startFrom += fullAngle // Используем полный угол для позиционирования
         }
 
-        // 2. Перекрытие: первый цвет заходит на последний
-        if (proportions.size > 1) {
+        //  первый цвет заходит на последний (тоже анимируется)
+        if (proportions.size > 1 && animationProgress > 0) {
             val firstColor = colors.getOrNull(0) ?: randomColor()
             paint.color = firstColor
-            canvas.drawArc(oval, -90F - overlapAngle, overlapAngle, false, paint)
+            val animatedOverlap = overlapAngle * animationProgress
+            canvas.drawArc(oval, -90F - animatedOverlap, animatedOverlap, false, paint)
         }
 
+        // Восстанавливаем канвас (отмена поворота)
+        canvas.restore()
+
+        // 3. Текст рисуется БЕЗ поворота и анимации
         canvas.drawText("100.00%", center.x, center.y + textPaint.textSize / 4, textPaint)
     }
 

@@ -1,5 +1,6 @@
 package ru.netology.nmedia.ui
 
+import android.animation.ValueAnimator
 import android.os.Bundle
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -24,19 +25,42 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        val view = findViewById<StatsView>(R.id.stats)
-        binding.stats.data = listOf(
+
+        val statsView = findViewById<StatsView>(R.id.stats)
+        val textView = findViewById<TextView>(R.id.label)
+
+        statsView.data = listOf(
             500F,  // Фиолетовый - 25% (первый - перекрывает)
             500F,  // Бирюзовый - 25%
             500F,  // Желтый - 25%
             500F,  // Розово-красный - 25% (последний)
         )
 
-        val textView = findViewById<TextView>(R.id.label)
+        //  Создаем ValueAnimator для плавной анимации прогресса
+        val progressAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 1200 // Общая длительность анимации
+            repeatCount = ValueAnimator.INFINITE // Бесконечное повторение
+            repeatMode = ValueAnimator.RESTART // Начинать заново
 
-        view.startAnimation(
-            AnimationUtils.loadAnimation(this, R.anim.animation).apply {
+            addUpdateListener { animator ->
+                val progress = animator.animatedValue as Float
+                statsView.progress = progress
+                textView.text = "Progress: ${(progress * 100).toInt()}%"
+            }
+        }
+
+        // Запускаем анимацию
+        progressAnimator.start()
+
+        // Обычную анимацию View можно отавить прикольно получается
+        /*     val scaleAnimation = AnimationUtils.loadAnimation(this, R.anim.animation)
+
+               .apply {
                 setAnimationListener(object : Animation.AnimationListener {
+                    override fun onAnimationStart(animation: Animation?) {
+                        textView.text = "AnimationStart"
+                    }
+
                     override fun onAnimationEnd(animation: Animation?) {
                         textView.text = "AnimationEnd"
                     }
@@ -44,14 +68,9 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
                     override fun onAnimationRepeat(animation: Animation?) {
                         textView.text = "AnimationRepeat"
                     }
-
-                    override fun onAnimationStart(animation: Animation?) {
-                        textView.text = "AnimationStart"
-                    }
-
                 })
             }
-        )
-        // binding.stats.overlap = 4F // Оптимальное перекрытие
+
+        statsView.startAnimation(scaleAnimation)  */
     }
 }
