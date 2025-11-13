@@ -5,16 +5,17 @@
         android:fromXScale="1.0"
         android:fromYScale="1.0"
         android:interpolator="@android:anim/linear_interpolator"
-        android:repeatCount="10"
+        android:repeatCount="3"
         android:repeatMode="reverse"
         android:toXScale="1.25"
         android:toYScale="1.25" />
 
     <rotate
+        android:duration="300"
         android:fromDegrees="0"
         android:pivotX="50%"
         android:pivotY="50%"
-        android:repeatCount="1"
+        android:repeatCount="3"
         android:repeatMode="reverse"
         android:startOffset="300"
         android:toDegrees="360" />
